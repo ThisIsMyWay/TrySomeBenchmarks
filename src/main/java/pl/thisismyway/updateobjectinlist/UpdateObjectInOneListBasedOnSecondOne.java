@@ -37,7 +37,6 @@ import lombok.Setter;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
-import java.awt.print.Book;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -100,9 +99,14 @@ public class UpdateObjectInOneListBasedOnSecondOne {
 
 
     @Benchmark
-    public void usedForLoop() {
+    public Set<BookOverallData> usedForLoop() {
+        Blackhole.consumeCPU(10);
+
         final Set<BookOverallData> listWithBooks = getListWithBooks();
         final Set<TimeDiscount> listWithDiscounts = getListWithDiscounts();
+
+        Blackhole.consumeCPU(10);
+
         for (BookOverallData bookOverallData : listWithBooks){
             for (TimeDiscount timeDiscount : listWithDiscounts){
                 if (timeDiscount.getIdOfBook().equals(bookOverallData.getIdOfBook())){
@@ -112,13 +116,19 @@ public class UpdateObjectInOneListBasedOnSecondOne {
         }
 
         Blackhole.consumeCPU(10);
+
+        return listWithBooks;
     }
 
 
     @Benchmark
-    public void streamOfStream() {
+    public Set<BookOverallData> streamOfStream() {
+        Blackhole.consumeCPU(10);
+
         final Set<BookOverallData> listWithBooks = getListWithBooks();
         final Set<TimeDiscount> listWithDiscounts = getListWithDiscounts();
+
+        Blackhole.consumeCPU(10);
 
         listWithBooks.forEach(
                 p -> {
@@ -127,15 +137,20 @@ public class UpdateObjectInOneListBasedOnSecondOne {
                 }
         );
 
-
         Blackhole.consumeCPU(10);
+
+        return listWithBooks;
     }
 
 
     @Benchmark
-    public void streamOptimized() {
+    public Set<BookOverallData> streamOptimized() {
+        Blackhole.consumeCPU(10);
+
         final Set<BookOverallData> listWithBooks = getListWithBooks();
         final Set<TimeDiscount> listWithDiscounts = getListWithDiscounts();
+
+        Blackhole.consumeCPU(10);
 
         Map<Long, TimeDiscount> accumulator =
                 listWithDiscounts.stream()
@@ -147,7 +162,7 @@ public class UpdateObjectInOneListBasedOnSecondOne {
         );
 
         Blackhole.consumeCPU(10);
+
+        return listWithBooks;
     }
-
-
 }
