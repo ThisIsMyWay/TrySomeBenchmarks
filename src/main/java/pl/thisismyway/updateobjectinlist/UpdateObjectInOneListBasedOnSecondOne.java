@@ -44,12 +44,19 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
-@Fork(1)
-@Warmup(iterations = 10)
-@Measurement(iterations = 10)
+@Fork(6)
+@Warmup(iterations = 5, time = 1)
+@Measurement(iterations = 5, time = 1)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.NANOSECONDS)
+@State(Scope.Thread)
 public class UpdateObjectInOneListBasedOnSecondOne {
+
+    @Param({"0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+            "10", "11", "12", "13", "14", "15", "16", "17", "18", "19",
+            "20", "21", "22", "23", "24", "25", "26", "27", "28", "29",
+            "30", "31", "32", "33", "34", "35", "36", "37", "38", "39","40"})
+    private int blackholeTokens;
 
     @AllArgsConstructor
     @Getter
@@ -97,15 +104,27 @@ public class UpdateObjectInOneListBasedOnSecondOne {
         return Set.of(new TimeDiscount(1L, 20), new TimeDiscount(8L, 20), new TimeDiscount(19L, 20));
     }
 
+    @Benchmark
+    public int baseLine(){
+        Blackhole.consumeCPU(blackholeTokens);
+        return 31;
+    }
+
+    @Benchmark
+    public int baseLine2(){
+        Blackhole.consumeCPU(blackholeTokens);
+        return 31;
+    }
+
 
     @Benchmark
     public Set<BookOverallData> usedForLoop() {
-        Blackhole.consumeCPU(10);
+        Blackhole.consumeCPU(blackholeTokens);
 
         final Set<BookOverallData> listWithBooks = getListWithBooks();
         final Set<TimeDiscount> listWithDiscounts = getListWithDiscounts();
 
-        Blackhole.consumeCPU(10);
+        Blackhole.consumeCPU(blackholeTokens);
 
         for (BookOverallData bookOverallData : listWithBooks){
             for (TimeDiscount timeDiscount : listWithDiscounts){
@@ -115,7 +134,7 @@ public class UpdateObjectInOneListBasedOnSecondOne {
             }
         }
 
-        Blackhole.consumeCPU(10);
+        Blackhole.consumeCPU(blackholeTokens);
 
         return listWithBooks;
     }
@@ -123,12 +142,12 @@ public class UpdateObjectInOneListBasedOnSecondOne {
 
     @Benchmark
     public Set<BookOverallData> streamOfStream() {
-        Blackhole.consumeCPU(10);
+        Blackhole.consumeCPU(blackholeTokens);
 
         final Set<BookOverallData> listWithBooks = getListWithBooks();
         final Set<TimeDiscount> listWithDiscounts = getListWithDiscounts();
 
-        Blackhole.consumeCPU(10);
+        Blackhole.consumeCPU(blackholeTokens);
 
         listWithBooks.forEach(
                 p -> {
@@ -137,7 +156,7 @@ public class UpdateObjectInOneListBasedOnSecondOne {
                 }
         );
 
-        Blackhole.consumeCPU(10);
+        Blackhole.consumeCPU(blackholeTokens);
 
         return listWithBooks;
     }
@@ -145,12 +164,12 @@ public class UpdateObjectInOneListBasedOnSecondOne {
 
     @Benchmark
     public Set<BookOverallData> streamOptimized() {
-        Blackhole.consumeCPU(10);
+        Blackhole.consumeCPU(blackholeTokens);
 
         final Set<BookOverallData> listWithBooks = getListWithBooks();
         final Set<TimeDiscount> listWithDiscounts = getListWithDiscounts();
 
-        Blackhole.consumeCPU(10);
+        Blackhole.consumeCPU(blackholeTokens);
 
         Map<Long, TimeDiscount> accumulator =
                 listWithDiscounts.stream()
@@ -161,7 +180,75 @@ public class UpdateObjectInOneListBasedOnSecondOne {
                         .ifPresent(p -> e.setDiscountRate(e.getDiscountRate() + p.getDiscountRate()))
         );
 
-        Blackhole.consumeCPU(10);
+        Blackhole.consumeCPU(blackholeTokens);
+
+        return listWithBooks;
+    }
+
+    @Benchmark
+    public Set<BookOverallData> usedForLoop2() {
+        Blackhole.consumeCPU(blackholeTokens);
+
+        final Set<BookOverallData> listWithBooks = getListWithBooks();
+        final Set<TimeDiscount> listWithDiscounts = getListWithDiscounts();
+
+        Blackhole.consumeCPU(blackholeTokens);
+
+        for (BookOverallData bookOverallData : listWithBooks){
+            for (TimeDiscount timeDiscount : listWithDiscounts){
+                if (timeDiscount.getIdOfBook().equals(bookOverallData.getIdOfBook())){
+                    bookOverallData.setDiscountRate(timeDiscount.getDiscountRate() + bookOverallData.getDiscountRate());
+                }
+            }
+        }
+
+        Blackhole.consumeCPU(blackholeTokens);
+
+        return listWithBooks;
+    }
+
+
+    @Benchmark
+    public Set<BookOverallData> streamOfStream2() {
+        Blackhole.consumeCPU(blackholeTokens);
+
+        final Set<BookOverallData> listWithBooks = getListWithBooks();
+        final Set<TimeDiscount> listWithDiscounts = getListWithDiscounts();
+
+        Blackhole.consumeCPU(blackholeTokens);
+
+        listWithBooks.forEach(
+                p -> {
+                    final Optional<TimeDiscount> promotion = listWithDiscounts.stream().filter(ap -> Objects.equals(ap.getIdOfBook(), p.getIdOfBook())).findFirst();
+                    promotion.ifPresent(ap -> p.setDiscountRate(ap.getDiscountRate() + p.getDiscountRate()));
+                }
+        );
+
+        Blackhole.consumeCPU(blackholeTokens);
+
+        return listWithBooks;
+    }
+
+
+    @Benchmark
+    public Set<BookOverallData> streamOptimized2() {
+        Blackhole.consumeCPU(blackholeTokens);
+
+        final Set<BookOverallData> listWithBooks = getListWithBooks();
+        final Set<TimeDiscount> listWithDiscounts = getListWithDiscounts();
+
+        Blackhole.consumeCPU(blackholeTokens);
+
+        Map<Long, TimeDiscount> accumulator =
+                listWithDiscounts.stream()
+                        .collect(Collectors.toMap(TimeDiscount::getIdOfBook, Function.identity()));
+
+        listWithBooks.forEach(e ->
+                Optional.ofNullable(accumulator.get(e.getIdOfBook()))
+                        .ifPresent(p -> e.setDiscountRate(e.getDiscountRate() + p.getDiscountRate()))
+        );
+
+        Blackhole.consumeCPU(blackholeTokens);
 
         return listWithBooks;
     }
