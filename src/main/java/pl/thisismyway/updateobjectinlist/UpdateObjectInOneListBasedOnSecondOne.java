@@ -26,13 +26,6 @@ public class UpdateObjectInOneListBasedOnSecondOne {
             "30", "31", "32", "33", "34", "35", "36", "37", "38", "39","40"})
     private int blackholeTokens;
 
-    @AllArgsConstructor
-    @Getter
-    public static class TimeDiscount {
-        private Long idOfBook;
-        private Integer discountRate;
-    }
-
     private Set<BookOverallData> getListWithBooks(){
 
         return Set.of(new BookOverallData(1L, "1984", "George Orwell", BigDecimal.valueOf(25.6), 10),
