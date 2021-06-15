@@ -1,8 +1,4 @@
 package pl.thisismyway.updateobjectinlist;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
